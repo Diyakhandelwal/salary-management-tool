@@ -31,39 +31,24 @@ The HR leadership requires web-based software to manage workforce compensation d
 
 ## 🏗️ 2. High-Level Architecture (HLD)
 
-Implemented following the architectural whiteboard specification:
+The system was engineered in direct accordance with the submitted architectural whiteboard specification:
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   CLIENT LAYER (React 19 + TypeScript)                 │
-│      [ Executive Dashboard ]   [ Employee Salaries & Filters ]         │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTP / REST (JSON)
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│              API GATEWAY LAYER (Spring Security / Filters)             │
-│   • Authenticated HR Persona Session   • Rate Limiting (180 req/min)   │
-│   • CORS Configuration                 • Global Exception Handling     │
-└───────────────────┬───────────────────────────┬────────────────────────┘
-                    │                           │
-  ┌─────────────────┴───────────────┐           │
-  ▼                                 ▼           ▼
-┌───────────────────────┐ ┌───────────────────────────┐ ┌────────────────┐
-│   Employee Profile    │ │ Search, Data Fetching &   │ │ Salary Update  │
-│   Management Service  │ │ Audit Compliance Service  │ │ Service        │
-└───────────┬───────────┘ └─────────────┬─────────────┘ └───────┬────────┘
-            │                           │                       │
-            └───────────────────────────┼───────────────────────┘
-                                        ▼
-                        ┌───────────────────────────────┐
-                        │   Spring Data JPA / ORM       │
-                        └───────────────┬───────────────┘
-                                        ▼
-                        ┌───────────────────────────────┐
-                        │    SQL Relational Database    │
-                        │ (H2 In-Memory / PostgreSQL)   │
-                        └───────────────────────────────┘
-```
+<p align="center">
+  <img src="docs/images/architecture_hld.png" alt="High-Level Design Whiteboard Architecture" width="850"/>
+</p>
+
+### Architecture Mapping & Component Breakdown
+
+| Whiteboard Specification Node | Implemented Component | Technical Responsibility |
+| :--- | :--- | :--- |
+| **HR User** | **Client Layer (React 19 + TypeScript)** | Web UI featuring executive compensation metrics, employee directory, revision modals, and audit logs. |
+| **API Gateway** | **Spring Filters & Security** | Enforces authenticated HR Persona session (`X-HR-Persona: Elena Vance`), CORS policies, and sliding-window rate limiting (180 req/min). |
+| **Employee Profile Management** | **Employee Service & Controller** | Complete employee lifecycle CRUD, departmental cost centers, geographic locations, and profile metadata. |
+| **Data Fetching / Search / Audit Service** | **Search Specification & Audit Service** | Compound multi-attribute search queries, pagination, salary range filters, and immutable forensic audit logging. |
+| **Salary Updation Service** | **Salary Service & Revision Controller** | Real-time percentage bump simulations (`+%`), base/bonus calculation, and chronological revision history tracking. |
+| **Report Generation Service** | **Analytics Service & Exporter** | Dynamic salary distribution band histograms, regional/department rollups, and filtered RFC-compliant CSV roster exports. |
+| **Repository Layer** | **Spring Data JPA / Hibernate 6** | Indexed database repositories (`EmployeeRepository`, `SalaryRevisionRepository`, `AuditLogRepository`). |
+| **DB - SQL** | **Relational SQL Database (H2 / Postgres)** | Stores employee info, department, organization, current salary, manager, and revision history with indexed queries. |
 
 ---
 

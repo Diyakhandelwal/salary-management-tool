@@ -42,6 +42,10 @@ The scope of this solution was intentionally refined following direct requiremen
 
 Implemented directly in accordance with the whiteboard architectural design:
 
+<p align="center">
+  <img src="images/architecture_hld.png" alt="High-Level Design Whiteboard Architecture" width="850"/>
+</p>
+
 ```
 +-----------------------------------------------------------------------------------+
 |                                 HR USER (CLIENT)                                  |
