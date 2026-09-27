@@ -158,4 +158,4 @@ docker compose up --build
 ---
 
 ## 👥 Author
-* **Diya Khandelwal** — Candidate Submission for Technical Assessment (September 2026).
+* **Diya Khandelwal**
