@@ -6,7 +6,12 @@
 [![Gradle](https://img.shields.io/badge/Gradle-8.12.1-02303A.svg?logo=gradle)](https://gradle.org/)
 [![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7.svg?logo=render&logoColor=white)](https://salary-management-frontend-16i0.onrender.com)
+[![Backend API](https://img.shields.io/badge/API-Live%20on%20Render-blue.svg)](https://salary-management-backend-ec7l.onrender.com/api/employees)
+
+> 🌐 **Live Cloud Deployment:**  
+> - **Web Dashboard:** [https://salary-management-frontend-16i0.onrender.com](https://salary-management-frontend-16i0.onrender.com)  
+> - **Backend API Health Check:** [https://salary-management-backend-ec7l.onrender.com/api/employees](https://salary-management-backend-ec7l.onrender.com/api/employees)
 
 An end-to-end, full-stack **Salary & Total Rewards Management Tool** designed for **ACME org** (an organization with 10,000 employees across multiple global regions). Built with **Java 21 / Spring Boot 3 & Gradle** on the backend and **React 19 / TypeScript / Vite** on the frontend.
 

@@ -36,7 +36,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: salary-management-backend
-          property: host
+        value: https://salary-management-backend-ec7l.onrender.com

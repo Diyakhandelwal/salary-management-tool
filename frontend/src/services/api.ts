@@ -15,6 +15,10 @@ function getApiBaseUrl(): string {
     return 'http://localhost:8080/api';
   }
   let url = envUrl.trim();
+  // If Render passed an internal service name without domain (e.g. salary-management-backend-ec7l)
+  if (!url.includes('.') && !url.includes('localhost')) {
+    url = `${url}.onrender.com`;
+  }
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
   }
