@@ -47,12 +47,53 @@ public class EmployeeService {
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + id));
     }
 
+    private void validateEmployeeBusinessRules(java.time.LocalDate hireDate, String status) {
+        if (hireDate == null) {
+            throw new IllegalArgumentException("Hire date is required.");
+        }
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        // Edge Case 1: Future hire date cannot be ACTIVE or TERMINATED
+        if (hireDate.isAfter(today)) {
+            if ("ACTIVE".equalsIgnoreCase(status) || "TERMINATED".equalsIgnoreCase(status)) {
+                throw new IllegalArgumentException(
+                    "Employee has a future start date (" + hireDate + "). Status cannot be '" + status + "'; future hires must be marked as 'ONBOARDING'."
+                );
+            }
+        }
+
+        // Edge Case 2: Past start date cannot be ONBOARDING
+        if (hireDate.isBefore(today.minusDays(14)) && "ONBOARDING".equalsIgnoreCase(status)) {
+            throw new IllegalArgumentException(
+                "Employee start date (" + hireDate + ") has already passed. Status cannot remain 'ONBOARDING'; please update to 'ACTIVE', 'ON_LEAVE', or 'TERMINATED'."
+            );
+        }
+
+        // Edge Case 3: Sanity limits on hire date
+        if (hireDate.isAfter(today.plusYears(2))) {
+            throw new IllegalArgumentException("Hire date cannot be scheduled more than 2 years into the future.");
+        }
+        if (hireDate.isBefore(java.time.LocalDate.of(1970, 1, 1))) {
+            throw new IllegalArgumentException("Hire date cannot precede January 1, 1970.");
+        }
+    }
+
     public Employee createEmployee(EmployeeCreateRequest request) {
         if (employeeRepository.existsByEmployeeCode(request.getEmployeeCode())) {
             throw new IllegalArgumentException("Employee code already exists: " + request.getEmployeeCode());
         }
         if (employeeRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
+        }
+
+        String status = (request.getStatus() != null && !request.getStatus().isBlank()) ? request.getStatus().trim() : "ACTIVE";
+        validateEmployeeBusinessRules(request.getHireDate(), status);
+
+        if (request.getBaseSalary() == null || request.getBaseSalary().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Starting base salary must be greater than zero.");
+        }
+        if (request.getVariableBonus() != null && request.getVariableBonus().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Variable bonus cannot be negative.");
         }
 
         Employee emp = new Employee();
@@ -66,7 +107,7 @@ public class EmployeeService {
         emp.setCountry(request.getCountry().trim());
         emp.setCurrency(request.getCurrency() != null ? request.getCurrency().trim().toUpperCase() : "USD");
         emp.setManagerName(request.getManagerName());
-        emp.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
+        emp.setStatus(status);
         emp.setHireDate(request.getHireDate());
         emp.setBaseSalary(request.getBaseSalary());
         emp.setVariableBonus(request.getVariableBonus() != null ? request.getVariableBonus() : BigDecimal.ZERO);
@@ -80,7 +121,7 @@ public class EmployeeService {
                 "CREATE_EMPLOYEE",
                 "HR Manager",
                 "Created employee profile: " + saved.getFirstName() + " " + saved.getLastName() + " (" + saved.getEmployeeCode() + ")",
-                "Base Salary: " + saved.getCurrency() + " " + saved.getBaseSalary() + ", Dept: " + saved.getDepartment()
+                "Status: " + saved.getStatus() + ", Base Salary: " + saved.getCurrency() + " " + saved.getBaseSalary() + ", Dept: " + saved.getDepartment()
         );
 
         return saved;
@@ -93,6 +134,10 @@ public class EmployeeService {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
         }
 
+        String newStatus = request.getStatus() != null ? request.getStatus().trim() : emp.getStatus();
+        java.time.LocalDate newHireDate = request.getHireDate() != null ? request.getHireDate() : emp.getHireDate();
+        validateEmployeeBusinessRules(newHireDate, newStatus);
+
         String oldDetails = "Dept: " + emp.getDepartment() + ", Role: " + emp.getJobTitle() + ", Status: " + emp.getStatus();
 
         emp.setFirstName(request.getFirstName().trim());
@@ -103,8 +148,8 @@ public class EmployeeService {
         emp.setOrganization(request.getOrganization().trim());
         emp.setCountry(request.getCountry().trim());
         if (request.getManagerName() != null) emp.setManagerName(request.getManagerName().trim());
-        if (request.getStatus() != null) emp.setStatus(request.getStatus().trim());
-        if (request.getHireDate() != null) emp.setHireDate(request.getHireDate());
+        emp.setStatus(newStatus);
+        emp.setHireDate(newHireDate);
 
         Employee updated = employeeRepository.save(emp);
 

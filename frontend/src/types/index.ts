@@ -10,7 +10,7 @@ export interface Employee {
   country: string;
   currency: string;
   managerName?: string;
-  status: 'ACTIVE' | 'ON_LEAVE' | 'TERMINATED';
+  status: 'ACTIVE' | 'ONBOARDING' | 'ON_LEAVE' | 'TERMINATED';
   hireDate: string;
   baseSalary: number;
   variableBonus: number;

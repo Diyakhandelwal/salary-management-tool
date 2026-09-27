@@ -43,9 +43,36 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isFutureHireDate = hireDate > todayStr;
+
+  const handleHireDateChange = (newDate: string) => {
+    setHireDate(newDate);
+    if (newDate > todayStr) {
+      setStatus('ONBOARDING');
+    } else if (status === 'ONBOARDING') {
+      setStatus('ACTIVE');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (isFutureHireDate && (status === 'ACTIVE' || status === 'TERMINATED')) {
+      setError('Employees with a future start date must be marked as ONBOARDING.');
+      return;
+    }
+
+    if (!isEdit && Number(baseSalary) <= 0) {
+      setError('Starting base salary must be greater than zero.');
+      return;
+    }
+
+    if (!isEdit && Number(variableBonus) < 0) {
+      setError('Variable bonus cannot be negative.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -164,14 +191,33 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px', display: 'block' }}>
-                Status *
-              </label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="input-field">
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="ON_LEAVE">ON_LEAVE</option>
-                <option value="TERMINATED">TERMINATED</option>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Status *
+                </label>
+                {isFutureHireDate && (
+                  <span style={{ fontSize: '0.68rem', color: '#1d4ed8', fontWeight: 700, background: '#eff6ff', padding: '1px 6px', borderRadius: '4px' }}>
+                    Future Hire
+                  </span>
+                )}
+              </div>
+              <select 
+                value={status} 
+                onChange={(e) => setStatus(e.target.value as any)} 
+                className="input-field"
+                disabled={isFutureHireDate}
+                title={isFutureHireDate ? "Status is locked to ONBOARDING for future hires" : undefined}
+              >
+                <option value="ACTIVE" disabled={isFutureHireDate}>ACTIVE</option>
+                <option value="ONBOARDING">ONBOARDING (Future Hire)</option>
+                <option value="ON_LEAVE" disabled={isFutureHireDate}>ON_LEAVE</option>
+                <option value="TERMINATED" disabled={isFutureHireDate}>TERMINATED</option>
               </select>
+              {isFutureHireDate && (
+                <p style={{ fontSize: '0.72rem', color: '#1d4ed8', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.2 }}>
+                  <AlertCircle size={12} /> Status set to ONBOARDING until start date ({hireDate}).
+                </p>
+              )}
             </div>
           </div>
 
@@ -288,7 +334,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
               <input
                 type="date"
                 value={hireDate}
-                onChange={(e) => setHireDate(e.target.value)}
+                onChange={(e) => handleHireDateChange(e.target.value)}
                 className="input-field"
                 required
               />

@@ -98,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
           >
             <Users size={17} color={activeTab === 'employees' ? '#a16207' : undefined} />
-            Employee Salaries
+            Employee Directory
           </button>
         </nav>
 

@@ -180,6 +180,12 @@ body {
   border: 1px solid #a7f3d0;
 }
 
+.badge-onboarding {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 .badge-leave {
   background: #fffbeb;
   color: #b45309;

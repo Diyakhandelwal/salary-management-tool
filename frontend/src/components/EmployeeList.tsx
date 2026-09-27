@@ -206,6 +206,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
               <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-field">
                 <option value="">All Statuses</option>
                 <option value="ACTIVE">ACTIVE</option>
+                <option value="ONBOARDING">ONBOARDING</option>
                 <option value="ON_LEAVE">ON LEAVE</option>
                 <option value="TERMINATED">TERMINATED</option>
               </select>
@@ -417,6 +418,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
                       <td>
                         <span className={`badge ${
                           emp.status === 'ACTIVE' ? 'badge-active' :
+                          emp.status === 'ONBOARDING' ? 'badge-onboarding' :
                           emp.status === 'ON_LEAVE' ? 'badge-leave' : 'badge-terminated'
                         }`}>
                           {emp.status}
@@ -429,8 +431,14 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
                           <button
                             onClick={() => onOpenRevision(emp)}
                             className="btn btn-primary btn-sm"
-                            title="Revise Base Salary or Variable Bonus"
-                            style={{ padding: '5px 10px', fontSize: '0.75rem' }}
+                            disabled={emp.status === 'TERMINATED'}
+                            title={emp.status === 'TERMINATED' ? 'Cannot revise compensation for a TERMINATED employee' : 'Revise Base Salary or Variable Bonus'}
+                            style={{
+                              padding: '5px 10px',
+                              fontSize: '0.75rem',
+                              opacity: emp.status === 'TERMINATED' ? 0.45 : 1,
+                              cursor: emp.status === 'TERMINATED' ? 'not-allowed' : 'pointer',
+                            }}
                           >
                             <TrendingUp size={13} />
                             Revise

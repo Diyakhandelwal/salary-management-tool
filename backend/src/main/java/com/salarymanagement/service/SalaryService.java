@@ -32,6 +32,24 @@ public class SalaryService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + employeeId));
 
+        if ("TERMINATED".equalsIgnoreCase(employee.getStatus())) {
+            throw new IllegalStateException("Cannot revise compensation for a TERMINATED employee (" + employee.getEmployeeCode() + ").");
+        }
+
+        if (request.getEffectiveDate() != null && employee.getHireDate() != null) {
+            if (request.getEffectiveDate().isBefore(employee.getHireDate())) {
+                throw new IllegalArgumentException("Salary revision effective date (" + request.getEffectiveDate() +
+                        ") cannot precede the employee hire date (" + employee.getHireDate() + ").");
+            }
+        }
+
+        if (request.getNewBaseSalary() == null || request.getNewBaseSalary().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("New base salary must be greater than zero.");
+        }
+        if (request.getNewBonus() != null && request.getNewBonus().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("New variable bonus cannot be negative.");
+        }
+
         BigDecimal prevBase = employee.getBaseSalary();
         BigDecimal prevBonus = employee.getVariableBonus() != null ? employee.getVariableBonus() : BigDecimal.ZERO;
         BigDecimal newBase = request.getNewBaseSalary();
