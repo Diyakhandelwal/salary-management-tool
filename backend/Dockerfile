@@ -1,9 +1,11 @@
 # Multi-stage Dockerfile for Spring Boot Backend using Gradle
-FROM gradle:8.12-jdk21-alpine AS build
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
-COPY build.gradle settings.gradle ./
+COPY gradlew gradlew.bat settings.gradle.kts build.gradle.kts ./
+COPY gradle ./gradle
+RUN chmod +x ./gradlew
 COPY src ./src
-RUN gradle bootJar --no-daemon
+RUN ./gradlew bootJar -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine

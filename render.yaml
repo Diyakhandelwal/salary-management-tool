@@ -1,4 +1,11 @@
-# Render Blueprint for Free Cloud Deployment
+# Render Blueprint for Full Cloud Stack: Managed PostgreSQL + Spring Boot Backend + React Frontend
+databases:
+  - name: salary-management-db
+    databaseName: salarydb
+    user: salaryuser
+    plan: free
+    region: oregon
+
 services:
   # Spring Boot Backend API
   - type: web
@@ -8,11 +15,14 @@ services:
     dockerContext: ./backend
     plan: free
     region: oregon
+    healthCheckPath: /api/employees
     envVars:
       - key: PORT
         value: 8080
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: salary-management-db
+          property: connectionString
 
   # React TypeScript Frontend
   - type: web

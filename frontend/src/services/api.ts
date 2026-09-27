@@ -9,9 +9,23 @@ import {
   SalaryRevisionRequest,
   HRUser,
 } from '../types';
+function getApiBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl) {
+    return 'http://localhost:8080/api';
+  }
+  let url = envUrl.trim();
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+}
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-
+const API_BASE_URL = getApiBaseUrl();
 const defaultHeaders = {
   'Content-Type': 'application/json',
   'X-HR-User-Role': 'HR_MANAGER',
