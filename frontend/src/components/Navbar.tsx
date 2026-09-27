@@ -3,15 +3,14 @@ import type { HRUser } from '../types';
 import { 
   BarChart3, 
   Users, 
-  FileText, 
   UserPlus, 
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'employees' | 'audit' | 'docs';
-  setActiveTab: (tab: 'dashboard' | 'employees' | 'audit' | 'docs') => void;
+  activeTab: 'dashboard' | 'employees' | 'audit';
+  setActiveTab: (tab: 'dashboard' | 'employees' | 'audit') => void;
   hrUser: HRUser | null;
   onOpenCreateEmployee: () => void;
 }
@@ -100,20 +99,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Users size={17} color={activeTab === 'employees' ? '#a16207' : undefined} />
             Employee Salaries
-          </button>
-
-          <button
-            onClick={() => setActiveTab('docs')}
-            className={`btn ${activeTab === 'docs' ? 'btn-secondary' : ''}`}
-            style={{
-              background: activeTab === 'docs' ? '#fef9c3' : 'transparent',
-              color: activeTab === 'docs' ? '#713f12' : 'var(--text-secondary)',
-              borderColor: activeTab === 'docs' ? '#fde047' : 'transparent',
-              fontWeight: activeTab === 'docs' ? 700 : 500,
-            }}
-          >
-            <FileText size={17} color={activeTab === 'docs' ? '#a16207' : undefined} />
-            HLD & PRD Spec
           </button>
         </nav>
 

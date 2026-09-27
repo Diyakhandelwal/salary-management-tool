@@ -1,4 +1,5 @@
 # CompPulse — Enterprise Salary Management Tool
+### Technical Assessment & Product Requirements Specification
 
 [![Java](https://img.shields.io/badge/Java-21%20%2F%2024-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -7,159 +8,169 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-An end-to-end, full-stack **Salary & Total Rewards Management Tool** designed for an **HR Manager persona**. Built with **Java / Spring Boot 3** on the backend and **React / TypeScript** on the frontend, featuring executive compensation analytics, multi-criteria employee search, live revision percentage calculators, chronological salary history timelines, and immutable audit logging.
+An end-to-end, full-stack **Salary & Total Rewards Management Tool** designed for **ACME org** (an organization with 10,000 employees across multiple global regions). Built with **Java 21 / Spring Boot 3 & Gradle** on the backend and **React 19 / TypeScript / Vite** on the frontend.
 
 ---
 
-## 📸 System Highlights & Architecture
+## 🎯 1. Product Requirements Document (PRD)
 
-Built in direct accordance with the High-Level Design (HLD) architecture specification:
+### Problem Statement
+Currently, ACME org’s HR team manages salary data for **10,000 employees across multiple countries**, with everything managed via offline spreadsheets, which is tedious, prone to human calculation errors, and lacks real-time visibility. 
+
+The HR leadership requires web-based software to manage workforce compensation data and be able to immediately answer macro-level questions about **how the organization pays its people**.
+
+### Primary User Persona
+* **Target User:** **Elena Vance — Head of People & Total Rewards (HR Manager)**
+* **Persona Responsibilities:**
+  * Monitoring organizational payroll allocation and budget distributions across global regions and departments.
+  * Modeling and executing salary merit revisions with real-time percentage simulations.
+  * Reviewing individual compensation histories and maintaining organizational pay equity.
+  * Generating filtered compensation rosters and audit trails for executive and finance reviews.
+
+---
+
+## 🏗️ 2. High-Level Architecture (HLD)
+
+Implemented following the architectural whiteboard specification:
 
 ```
-[HR User] ──> [API Gateway (Auth + Rate Limiter)]
-                     │
-       ┌─────────────┼─────────────┬─────────────┐
-       ▼             ▼             ▼             ▼
- [Employee     [Search / Data  [Salary       [Report /
-  Profile       Fetching &      Updation      Analytics
-  Management]   Audit Service]  Service]      Service]
-       │             │             │             │
-       └─────────────┴──────┬──────┴─────────────┘
-                            ▼
-                  [Repository Layer (JPA)]
-                            ▼
-                  [SQL Database (H2 / Postgres)]
+┌────────────────────────────────────────────────────────────────────────┐
+│                   CLIENT LAYER (React 19 + TypeScript)                 │
+│      [ Executive Dashboard ]   [ Employee Salaries & Filters ]         │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTP / REST (JSON)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│              API GATEWAY LAYER (Spring Security / Filters)             │
+│   • Authenticated HR Persona Session   • Rate Limiting (180 req/min)   │
+│   • CORS Configuration                 • Global Exception Handling     │
+└───────────────────┬───────────────────────────┬────────────────────────┘
+                    │                           │
+  ┌─────────────────┴───────────────┐           │
+  ▼                                 ▼           ▼
+┌───────────────────────┐ ┌───────────────────────────┐ ┌────────────────┐
+│   Employee Profile    │ │ Search, Data Fetching &   │ │ Salary Update  │
+│   Management Service  │ │ Audit Compliance Service  │ │ Service        │
+└───────────┬───────────┘ └─────────────┬─────────────┘ └───────┬────────┘
+            │                           │                       │
+            └───────────────────────────┼───────────────────────┘
+                                        ▼
+                        ┌───────────────────────────────┐
+                        │   Spring Data JPA / ORM       │
+                        └───────────────┬───────────────┘
+                                        ▼
+                        ┌───────────────────────────────┐
+                        │    SQL Relational Database    │
+                        │ (H2 In-Memory / PostgreSQL)   │
+                        └───────────────────────────────┘
 ```
 
-### Key Modules & Capabilities:
-1. **Executive Compensation Analytics:**
-   - Real-time KPIs: Total Annual Payroll, Active Headcount, Mean & Median Base Salary, Min/Max Spread.
-   - Interactive Visualizations: Salary distribution brackets/histogram (<$50K to $200K+), Department budget allocation, Geographic expenditure across 5 operating regions (US, UK, India, Germany, Singapore).
-   - One-Click CSV Roster Export.
+---
+
+## 📋 3. Scope Decisions & Deliberate Trade-Offs
+
+Per the recruiter's explicit requirements review and product scoping, deliberate architectural boundaries were established:
+
+| Feature / Domain | Scope Status | Product Reasoning & Trade-off |
+| :--- | :---: | :--- |
+| **Salary Management & Insights** | ✅ **In Scope** | Core objective: replacing spreadsheets with live compensation analytics, band distributions, and revision tooling. |
+| **Salary Revision History** | ✅ **In Scope** | Essential for governance: chronological timeline of adjustments (+%), effective dates, and reasons. |
+| **Filtered Report Generation** | ✅ **In Scope** | Direct HR requirement: one-click CSV download of all employees or active search filters (department, country, salary range). |
+| **Audit & Compliance Trail** | ✅ **In Scope** | Immutable event logging for pay revisions and employee lifecycle changes (`CREATE`, `UPDATE`, `DELETE`). |
+| **Rate Limiting Gateway** | ✅ **In Scope** | Sliding window rate limiting (180 req/min) implemented to protect reporting APIs at scale. |
+| **Transactional Payroll Processing** | ❌ **Excluded** | Focused on *compensation management* rather than payroll runs (tax withholdings, W-2/TDS, bank transfers). Adding payroll tax engines introduces regional tax code bloat without aiding compensation decision-making. |
+| **Multi-Tier Approval State Machines** | ❌ **Excluded** | Single HR Manager persona confirmed by recruiter. Eliminates complex multi-party queue overhead while ensuring instant revision execution and accountability. |
+| **Third-Party HRMS Integrations** | ❌ **Excluded** | Syncing with Workday/BambooHR requires sandbox credentials and adds external network flakiness. An autonomous relational SQL database provides deterministic evaluation. |
+| **Multi-User Login / Public Identity Gateway** | ❌ **Excluded** | The assignment explicitly defines a single target persona (*HR Manager*). Adding login/registration/password-reset screens introduces evaluation friction without contributing to solving the 10,000-employee Excel replacement problem. Elena Vance operates under an authenticated enterprise session with direct compliance access. |
+
+> The official standalone requirements specification is also committed in [`REQUIREMENTS.md`](REQUIREMENTS.md).
+
+---
+
+## 💡 4. Core Features & Capabilities
+
+1. **Executive Compensation Dashboard:**
+   * Real-time Macro KPIs: Total Annual Payroll, Active Headcount, Mean & Median Base Salary, Min/Max Spread.
+   * Salary Band Distribution Histogram: Categorized into `< $50K`, `$50K–$80K`, `$80K–$110K`, `$110K–$150K`, `$150K–$200K`, `$200K+`.
+   * Department & Country Rollups: Instant drill-downs into department payroll allocations and regional workforce costs (US, UK, Germany, India, Singapore).
 2. **Employee Directory & Multi-Criteria Search:**
-   - Instant search across name, employee code (`EMP-xxxx`), job title, and email.
-   - Filter chips by Department, Country, Status, and Min/Max Salary range slider.
-   - Sortable table with active status badges.
-3. **Salary Revision & Compensation Modeling:**
-   - Real-time delta calculations: percentage bump (`+%`) and dollar change.
-   - Revision reason tagging (Annual Merit, Promotion, Market Benchmark, Retention, Cost of Living).
-   - Approval recording under the single HR Manager persona (*Elena Vance*).
-4. **Chronological Revision History Timeline:**
-   - Slide-out drawer displaying an employee's full compensation journey from initial offer to current revision.
-5. **Audit & Compliance Trail:**
-   - Immutable log capturing all employee creation, profile edits, salary revisions, actor IDs, timestamps, and modification diffs.
-6. **API Gateway Simulation:**
-   - In-memory sliding window rate limiting (180 requests/min per IP) returning `429 Too Many Requests` on abuse.
-   - Authenticated HR Persona token simulation (`X-HR-User-Role`).
+   * High-speed paginated grid supporting 10,000+ employee records.
+   * Search across name, employee code (`EMP-xxxx`), job title, and email.
+   * Multi-attribute filters: Department, Country, Status (`ACTIVE`, `ON_LEAVE`, `TERMINATED`), and Min/Max Salary range.
+3. **Salary Revision & Merit Simulation Tool:**
+   * Live delta calculation: preview new base salary, total compensation, and exact percentage bump (`+3%`, `+5%`, `+10%`, custom).
+   * Structured justification: Merit, Market Correction, Promotion, Retention, Cost of Living.
+4. **Contextual Revision History Drawer:**
+   * Chronological slide-out timeline per employee displaying their entire career pay trajectory.
+5. **Filtered CSV Report Generation:**
+   * Download compensation rosters matching current active filters directly to CSV for offline modeling in Excel or Google Sheets.
+6. **System Audit & Compliance Log:**
+   * Discrete access via header utility button or footer link to review immutable audit events, actors, timestamps, and modification diffs.
 
 ---
 
-## 📋 One-Page Requirements & Scope Trade-Offs
+## 🚀 5. Quick Start (Local Development)
 
-Per the recruiter's explicit requirements review, deliberate scope boundaries were documented before development:
+### Prerequisites
+* **Java 21 or 24** (`java -version`)
+* **Gradle Wrapper** (`gradlew.bat` / `./gradlew` included)
+* **Node.js 20+** & **npm** (`node -v`, `npm -v`)
 
-| Feature | Scope Status | Rationale |
-| :--- | :--- | :--- |
-| **Payroll Processing** | ❌ **Excluded** | Focused on compensation planning rather than operational payroll runs, tax withholdings, and disbursement. |
-| **Multi-Tier Approvals** | ❌ **Excluded** | Single HR Manager persona confirmed by recruiter; avoids unnecessary queue state machines. |
-| **HRMS Integrations** | ❌ **Excluded** | Self-contained SQL database avoids third-party sandbox dependencies. |
-| **Advanced RBAC** | ❌ **Excluded** | Single HR Manager persona sufficient. |
-| **Salary Revision History** | ✅ **Included** | High-value capability showing compensation trajectory over time. |
-| **Audit Trail** | ✅ **Included** | Enterprise compliance requirement for logging pay changes. |
-
-> Detailed documentation is available in [`docs/REQUIREMENTS_AND_ARCHITECTURE.md`](docs/REQUIREMENTS_AND_ARCHITECTURE.md) and inside the running application under the **HLD & PRD Spec** tab.
-
----
-
-## 🚀 Quick Start (Local Development)
-
-### Prerequisites:
-- **Java 21 or 24** (`java -version`)
-- **Gradle 8+** or the included Gradle Wrapper (`gradlew.bat` / `./gradlew`)
-- **Node.js 20+** & **npm** (`node -v`, `npm -v`)
-
-### 1. Start the Spring Boot Backend (Gradle):
+### 1. Start the Backend (Spring Boot 3 & Gradle)
 ```bash
 cd backend
+
 # Windows:
 .\gradlew.bat bootRun
 
 # Linux / macOS:
 ./gradlew bootRun
 ```
-* Backend runs at: `http://localhost:8080`
-* H2 Database Web Console: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:salarydb`, User: `sa`, Password: *empty*)
-* Seed data: The backend automatically seeds 20 realistic global employee profiles and historical revisions on initial boot!
+* **API Service:** `http://localhost:8080`
+* **H2 Database Console:** `http://localhost:8080/h2-console`  
+  * JDBC URL: `jdbc:h2:mem:salarydb`  
+  * Username: `sa` | Password: *(blank)*
 
-### 2. Start the React TypeScript Frontend:
+### 2. Start the Frontend (React 19, TypeScript & Vite)
 In a separate terminal:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-* Frontend runs at: `http://localhost:5173`
+* **Web UI:** `http://localhost:5173`
 
 ---
 
-## 🐳 Running with Docker & Docker Compose
+## 🐳 6. Running with Docker Compose
 
-To launch both backend and frontend in isolated containers with a single command:
-
+Launch the full-stack system in isolated containers:
 ```bash
 docker compose up --build
 ```
-* Frontend accessible at: `http://localhost:3000`
-* Backend API accessible at: `http://localhost:8080`
+* **Frontend:** `http://localhost:3000`
+* **Backend:** `http://localhost:8080`
 
 ---
 
-## ☁️ Deployment Guide (Render Free Cloud Hosting)
-
-This repository includes a ready-to-deploy [`render.yaml`](render.yaml) blueprint.
-
-### Option A: One-Click Render Blueprint
-1. Push this repository to GitHub.
-2. Log in to [Render.com](https://render.com).
-3. Click **New +** -> **Blueprint**.
-4. Select your repository. Render will automatically detect `render.yaml` and provision:
-   - Backend Web Service (Docker / Java 21)
-   - Frontend Static Site (Vite build)
-5. Click **Apply**.
-
-### Option B: Manual Free Web Service Setup on Render
-1. **Backend Web Service:**
-   - **Environment:** Docker
-   - **Root Directory:** `backend`
-   - **Docker Context:** `./backend`
-   - **Port:** `8080`
-   - **Health Check Path:** `/api/auth/me`
-2. **Frontend Static Site:**
-   - **Root Directory:** `frontend`
-   - **Build Command:** `npm install && npm run build`
-   - **Publish Directory:** `dist`
-   - **Environment Variable:** `VITE_API_URL=https://<your-backend-service>.onrender.com/api`
-
----
-
-## 📡 REST API Reference Summary
+## 📡 7. REST API Reference Summary
 
 | Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/api/employees` | `GET` | Paginated employee search with multi-criteria filters |
+| :--- | :---: | :--- |
+| `/api/employees` | `GET` | Paginated search with multi-criteria filters (`keyword`, `department`, `country`, `status`, `minSalary`, `maxSalary`) |
 | `/api/employees/{id}` | `GET` | Retrieve single employee profile |
-| `/api/employees` | `POST` | Create new employee with starting compensation |
+| `/api/employees` | `POST` | Create new employee profile with initial compensation package |
 | `/api/employees/{id}` | `PUT` | Update employee profile details |
-| `/api/employees/{id}` | `DELETE` | Delete employee profile (audited) |
-| `/api/salaries/employees/{id}/revise` | `POST` | Execute salary revision, compute delta %, and append history |
-| `/api/salaries/employees/{id}/history` | `GET` | Get chronological salary revision timeline for employee |
-| `/api/salaries/recent-revisions` | `GET` | Get top 10 organization-wide recent salary adjustments |
-| `/api/analytics/dashboard` | `GET` | Retrieve executive compensation KPIs, distribution bands, and breakdowns |
-| `/api/analytics/export/csv` | `GET` | Download full compensation roster as CSV file |
+| `/api/employees/{id}` | `DELETE` | Delete employee record (generates audit entry) |
+| `/api/salaries/employees/{id}/revise` | `POST` | Execute salary revision, compute percentage delta, and record history |
+| `/api/salaries/employees/{id}/history` | `GET` | Retrieve chronological revision history for an employee |
+| `/api/salaries/recent-revisions` | `GET` | Retrieve latest organization-wide compensation revisions |
+| `/api/analytics/dashboard` | `GET` | Calculate macro KPIs, distribution bands, and department/country rollups |
+| `/api/analytics/export/csv` | `GET` | Stream filtered compensation roster as an RFC-compliant CSV |
 | `/api/audit-logs` | `GET` | Retrieve paginated compliance audit trail |
-| `/api/auth/me` | `GET` | Retrieve current HR Manager persona session |
+| `/api/auth/me` | `GET` | Retrieve current HR Manager persona context |
 
 ---
 
-## 👥 Contributors & Author
+## 👥 Author
 * **Diya Khandelwal** — Candidate Submission for Technical Assessment (September 2026).

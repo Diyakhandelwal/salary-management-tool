@@ -6,7 +6,6 @@ import { SalaryRevisionModal } from './components/SalaryRevisionModal';
 import { SalaryHistoryDrawer } from './components/SalaryHistoryDrawer';
 import { EmployeeModal } from './components/EmployeeModal';
 import { AuditLogsView } from './components/AuditLogsView';
-import { DocumentationView } from './components/DocumentationView';
 import { api } from './services/api';
 import { 
   Employee, 
@@ -21,7 +20,7 @@ import {
 import { CheckCircle2, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'employees' | 'audit' | 'docs'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'employees' | 'audit'>('dashboard');
   
   // Data states
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -314,10 +313,6 @@ export const App: React.FC = () => {
 
         {activeTab === 'audit' && (
           <AuditLogsView />
-        )}
-
-        {activeTab === 'docs' && (
-          <DocumentationView />
         )}
       </main>
 
