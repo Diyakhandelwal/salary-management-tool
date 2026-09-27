@@ -2,7 +2,7 @@
 databases:
   - name: salary-management-db
     databaseName: salarydb
-    user: salaryuser
+    user: salary_database_user
     plan: free
     region: oregon
 
