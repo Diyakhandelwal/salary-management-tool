@@ -17,7 +17,7 @@ import {
   EmployeeUpdateRequest,
   SalaryRevisionRequest
 } from './types';
-import { CheckCircle2, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'employees' | 'audit'>('dashboard');
@@ -277,9 +277,27 @@ export const App: React.FC = () => {
             recentRevisions={recentRevisions}
             roleAnalytics={roleAnalytics}
             onNavigateToEmployees={handleNavigateToEmployeesWithFilter}
-            onOpenRevisionForEmployee={(empId) => {
-              const target = employees.find(e => e.id === empId);
+            onOpenRevisionForEmployee={async (empId) => {
+              let target = employees.find(e => e.id === empId);
+              if (!target) {
+                try {
+                  target = await api.getEmployeeById(empId);
+                } catch (e) {
+                  console.error('Failed to get employee details', e);
+                }
+              }
               if (target) setSelectedForRevision(target);
+            }}
+            onOpenHistoryForEmployee={async (empId) => {
+              let target = employees.find(e => e.id === empId);
+              if (!target) {
+                try {
+                  target = await api.getEmployeeById(empId);
+                } catch (e) {
+                  console.error('Failed to get employee details', e);
+                }
+              }
+              if (target) setSelectedForHistory(target);
             }}
           />
         )}
@@ -354,47 +372,6 @@ export const App: React.FC = () => {
           countries={countries}
         />
       )}
-
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '20px 24px',
-        textAlign: 'center',
-        fontSize: '0.78rem',
-        color: 'var(--text-secondary)',
-        background: '#ffffff',
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.02)',
-      }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <div>
-            <strong style={{ color: '#713f12' }}>CompPulse</strong> Salary Management System • Designed & Built for Candidate Technical Evaluation
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              onClick={() => setActiveTab('audit')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: activeTab === 'audit' ? '#ca8a04' : '#854d0e',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-              title="Inspect system audit events and compliance history"
-            >
-              <ShieldCheck size={13} />
-              System Audit & Compliance Log
-            </button>
-            <span style={{ color: 'var(--text-muted)' }}>
-              Built with Spring Boot 3 & React TypeScript • Ready for Render Deployment
-            </span>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );

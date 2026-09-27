@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   Download
 } from 'lucide-react';
+import { CurrencyCode, SUPPORTED_CURRENCIES } from '../utils/currency';
 
 interface EmployeeListProps {
   employees: Employee[];
@@ -70,8 +71,8 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
-    if (initialDeptFilter) setDepartment(initialDeptFilter);
-    if (initialCountryFilter) setCountry(initialCountryFilter);
+    setDepartment(initialDeptFilter || '');
+    setCountry(initialCountryFilter || '');
   }, [initialDeptFilter, initialCountryFilter]);
 
   const applyFilters = () => {
@@ -105,14 +106,34 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
     setSortDirection('desc');
   };
 
-  const formatCurrency = (val: number | undefined, currency = 'USD') => {
-    if (val === undefined || isNaN(val)) return '$0';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+  const handleSortHeader = (col: string) => {
+    if (sortBy === col) {
+      setSortDirection(prev => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortBy(col);
+      setSortDirection('desc');
+    }
   };
+
+  const renderSortIndicator = (col: string) => {
+    if (sortBy !== col) return null;
+    return <span style={{ marginLeft: '4px', color: '#ca8a04', fontSize: '0.72rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>;
+  };
+
+  const formatCurrency = (val: number | undefined, curr = 'USD') => {
+    if (val === undefined || isNaN(val)) return '$0';
+    const safeCurrency = curr || 'USD';
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: safeCurrency,
+        maximumFractionDigits: 0,
+      }).format(val);
+    } catch {
+      return `${safeCurrency} ${val.toLocaleString()}`;
+    }
+  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -214,7 +235,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
 
             <div>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#713f12', marginBottom: '4px', display: 'block' }}>
-                Min Base Salary ($)
+                Min Base Salary (USD $)
               </label>
               <input
                 type="number"
@@ -227,7 +248,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
 
             <div>
               <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#713f12', marginBottom: '4px', display: 'block' }}>
-                Max Base Salary ($)
+                Max Base Salary (USD $)
               </label>
               <input
                 type="number"
@@ -260,6 +281,72 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
                 <option value="asc">Ascending (Low to High)</option>
               </select>
             </div>
+          </div>
+        )}
+
+        {/* Active Filter Chips Bar */}
+        {(keyword || department || country || status || minSalary || maxSalary) && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginTop: '14px',
+            paddingTop: '12px',
+            borderTop: '1px solid var(--border-subtle)',
+          }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>Active Filters:</span>
+            {keyword && (
+              <span className="filter-chip">
+                Search: "{keyword}"
+                <span className="filter-chip-remove" onClick={() => setKeyword('')}>×</span>
+              </span>
+            )}
+            {department && (
+              <span className="filter-chip">
+                Dept: {department}
+                <span className="filter-chip-remove" onClick={() => setDepartment('')}>×</span>
+              </span>
+            )}
+            {country && (
+              <span className="filter-chip">
+                Country: {country}
+                <span className="filter-chip-remove" onClick={() => setCountry('')}>×</span>
+              </span>
+            )}
+            {status && (
+              <span className="filter-chip">
+                Status: {status}
+                <span className="filter-chip-remove" onClick={() => setStatus('')}>×</span>
+              </span>
+            )}
+            {minSalary && (
+              <span className="filter-chip">
+                Min: ${minSalary}
+                <span className="filter-chip-remove" onClick={() => setMinSalary('')}>×</span>
+              </span>
+            )}
+            {maxSalary && (
+              <span className="filter-chip">
+                Max: ${maxSalary}
+                <span className="filter-chip-remove" onClick={() => setMaxSalary('')}>×</span>
+              </span>
+            )}
+            <button
+              onClick={handleReset}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#be123c',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '2px 6px',
+                textDecoration: 'underline',
+              }}
+            >
+              Clear All
+            </button>
           </div>
         )}
       </div>
@@ -318,20 +405,34 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Title & Department</th>
-                  <th>Location</th>
-                  <th>Base Salary</th>
-                  <th>Variable Bonus</th>
-                  <th>Total Comp</th>
-                  <th>Last Revised</th>
-                  <th>Status</th>
+                  <th onClick={() => handleSortHeader('lastName')} className="sortable-th" title="Click to sort by Name">
+                    Employee {renderSortIndicator('lastName')}
+                  </th>
+                  <th onClick={() => handleSortHeader('department')} className="sortable-th" title="Click to sort by Department">
+                    Title & Department {renderSortIndicator('department')}
+                  </th>
+                  <th onClick={() => handleSortHeader('country')} className="sortable-th" title="Click to sort by Location">
+                    Location {renderSortIndicator('country')}
+                  </th>
+                  <th onClick={() => handleSortHeader('baseSalary')} className="sortable-th" title="Click to sort by Base Salary">
+                    Base Salary (USD) {renderSortIndicator('baseSalary')}
+                  </th>
+                  <th>Variable Bonus (USD)</th>
+                  <th>Total Comp (USD)</th>
+                  <th onClick={() => handleSortHeader('hireDate')} className="sortable-th" title="Click to sort by Hire Date">
+                    Last Revised {renderSortIndicator('hireDate')}
+                  </th>
+                  <th onClick={() => handleSortHeader('status')} className="sortable-th" title="Click to sort by Status">
+                    Status {renderSortIndicator('status')}
+                  </th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {employees.map((emp) => {
                   const initials = `${emp.firstName.charAt(0)}${emp.lastName.charAt(0)}`;
+                  const empCurrency = (emp.currency || 'USD') as CurrencyCode;
+                  const rate = SUPPORTED_CURRENCIES[empCurrency]?.rateFromUSD || 1;
                   return (
                     <tr key={emp.id}>
                       {/* Employee details */}
@@ -389,24 +490,36 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
 
                       {/* Base Salary */}
                       <td>
-                        <div className="amount-mono" style={{ fontSize: '0.95rem', color: '#18181b', fontWeight: 700 }}>
-                          {formatCurrency(emp.baseSalary, emp.currency)}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className="amount-mono" style={{ fontSize: '0.95rem', color: '#18181b', fontWeight: 700 }}>
+                            {formatCurrency(emp.baseSalary, 'USD')}
+                          </span>
+                          <span className="currency-badge">{emp.currency || 'USD'}</span>
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Annualized</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {empCurrency !== 'USD' 
+                            ? `≈ ${formatCurrency(emp.baseSalary * rate, empCurrency)} in ${empCurrency}` 
+                            : 'Annualized Base USD'}
+                        </div>
                       </td>
 
                       {/* Bonus */}
                       <td>
                         <div className="amount-mono" style={{ fontSize: '0.875rem', color: '#059669', fontWeight: 600 }}>
-                          {formatCurrency(emp.variableBonus, emp.currency)}
+                          {formatCurrency(emp.variableBonus, 'USD')}
                         </div>
                       </td>
 
                       {/* Total Comp */}
                       <td>
                         <div className="amount-mono" style={{ fontSize: '1rem', color: '#854d0e', fontWeight: 800 }}>
-                          {formatCurrency(emp.totalCompensation, emp.currency)}
+                          {formatCurrency(emp.totalCompensation, 'USD')}
                         </div>
+                        {empCurrency !== 'USD' && (
+                          <div style={{ fontSize: '0.7rem', color: '#a16207' }}>
+                            ≈ {formatCurrency(emp.totalCompensation * rate, empCurrency)}
+                          </div>
+                        )}
                       </td>
 
                       {/* Last Revision */}
@@ -481,7 +594,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
         )}
 
         {/* Pagination Footer */}
-        {totalPages > 1 && (
+        {totalElements > 0 && (
           <div style={{
             padding: '14px 20px',
             borderTop: '1px solid var(--border-subtle)',
@@ -489,9 +602,12 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             background: '#fffef5',
+            flexWrap: 'wrap',
+            gap: '12px',
           }}>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Page <strong style={{ color: '#18181b' }}>{currentPage + 1}</strong> of <strong style={{ color: '#18181b' }}>{totalPages}</strong>
+              Page <strong style={{ color: '#18181b' }}>{currentPage + 1}</strong> of <strong style={{ color: '#18181b' }}>{Math.max(totalPages, 1)}</strong>
+              <span style={{ marginLeft: '8px' }}>• {totalElements} total employee records</span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -499,7 +615,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 0}
                 className="btn btn-secondary btn-sm"
-                style={{ opacity: currentPage === 0 ? 0.4 : 1 }}
+                style={{ opacity: currentPage === 0 ? 0.4 : 1, cursor: currentPage === 0 ? 'not-allowed' : 'pointer' }}
               >
                 <ChevronLeft size={16} />
                 Previous
@@ -509,7 +625,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages - 1}
                 className="btn btn-secondary btn-sm"
-                style={{ opacity: currentPage >= totalPages - 1 ? 0.4 : 1 }}
+                style={{ opacity: currentPage >= totalPages - 1 ? 0.4 : 1, cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer' }}
               >
                 Next
                 <ChevronRight size={16} />

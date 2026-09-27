@@ -5,7 +5,7 @@ import {
   Users, 
   UserPlus, 
   ShieldCheck,
-  Sparkles
+  Activity
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -22,57 +22,46 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCreateEmployee,
 }) => {
   return (
-    <header style={{
+    <header className="main-navbar" style={{
       borderBottom: '1px solid var(--border-subtle)',
-      background: 'rgba(255, 255, 255, 0.95)',
+      background: 'rgba(255, 255, 255, 0.96)',
       backdropFilter: 'blur(16px)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
-      padding: '0 24px',
       boxShadow: '0 1px 3px rgba(234, 179, 8, 0.08)',
     }}>
-      <div style={{
-        maxWidth: '1440px',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '72px',
-        gap: '24px',
-      }}>
+      <div className="navbar-container">
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div className="navbar-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
+            width: '40px',
+            height: '40px',
+            borderRadius: '11px',
             background: 'linear-gradient(135deg, #fde047 0%, #eab308 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 10px rgba(234, 179, 8, 0.35)',
+            boxShadow: '0 2px 8px rgba(234, 179, 8, 0.35)',
             border: '1px solid #facc15',
+            flexShrink: 0,
           }}>
-            <Sparkles size={22} color="#713f12" />
+            <Activity size={22} color="#713f12" strokeWidth={2.4} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#18181b' }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#18181b', lineHeight: 1.1 }}>
                 Comp<span style={{ color: '#ca8a04' }}>Pulse</span>
               </span>
-              <span className="badge badge-yellow" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
-                v1.0 • Enterprise
-              </span>
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <p className="navbar-subtext" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
               Total Rewards & Salary Management
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <nav className="navbar-tabs" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`btn ${activeTab === 'dashboard' ? 'btn-secondary' : ''}`}
@@ -84,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
           >
             <BarChart3 size={17} color={activeTab === 'dashboard' ? '#a16207' : undefined} />
-            Analytics
+            <span>Analytics</span>
           </button>
 
           <button
@@ -98,12 +87,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
           >
             <Users size={17} color={activeTab === 'employees' ? '#a16207' : undefined} />
-            Employee Directory
+            <span>Employee Directory</span>
           </button>
         </nav>
 
         {/* Action Controls & HR User Persona */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Discrete Secondary Access: Audit Log */}
           <button
             onClick={() => setActiveTab('audit')}
@@ -119,7 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="System & Compliance Audit Trail"
           >
             <ShieldCheck size={14} color={activeTab === 'audit' ? '#a16207' : '#854d0e'} />
-            <span style={{ fontSize: '0.8rem' }}>Audit Log</span>
+            <span className="audit-text" style={{ fontSize: '0.8rem' }}>Audit Log</span>
           </button>
 
           <button
@@ -127,15 +116,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="btn btn-primary btn-sm"
           >
             <UserPlus size={15} />
-            Add Employee
+            <span className="add-emp-text">Add Employee</span>
           </button>
 
           {/* User Persona Chip */}
-          <div style={{
+          <div className="persona-chip" style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '5px 12px 5px 6px',
+            gap: '8px',
+            padding: '4px 10px 4px 4px',
             background: '#fefce8',
             borderRadius: 'var(--radius-full)',
             border: '1px solid #fef08a',
@@ -152,16 +141,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               fontSize: '0.85rem',
               color: '#713f12',
               border: '1px solid #ca8a04',
+              flexShrink: 0,
             }}>
               EV
             </div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#18181b' }}>
+            <div className="persona-details" style={{ textAlign: 'left', lineHeight: 1.2 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#18181b', whiteSpace: 'nowrap' }}>
                 {hrUser?.name || 'Elena Vance'}
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#854d0e', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#eab308' }}></span>
-                HR Manager Persona
+              <div style={{ fontSize: '0.66rem', color: '#854d0e', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#eab308' }}></span>
+                HR Manager
               </div>
             </div>
           </div>

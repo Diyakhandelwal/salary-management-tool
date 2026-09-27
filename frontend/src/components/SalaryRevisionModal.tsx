@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Employee, SalaryRevisionRequest } from '../types';
 import { TrendingUp, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CurrencyCode, SUPPORTED_CURRENCIES, formatCurrencyAmount } from '../utils/currency';
 
 interface SalaryRevisionModalProps {
   employee: Employee;
@@ -29,6 +30,8 @@ export const SalaryRevisionModal: React.FC<SalaryRevisionModalProps> = ({
   const salaryDiff = newBaseSalary - prevBase;
   const percentageChange = prevBase > 0 ? ((salaryDiff / prevBase) * 100) : 0;
   const newTotalComp = Number(newBaseSalary) + Number(newBonus);
+  const empCurrency = (employee.currency || 'USD') as CurrencyCode;
+  const currencyRate = SUPPORTED_CURRENCIES[empCurrency]?.rateFromUSD || 1;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +63,7 @@ export const SalaryRevisionModal: React.FC<SalaryRevisionModalProps> = ({
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: employee.currency || 'USD',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
   };
@@ -114,7 +117,7 @@ export const SalaryRevisionModal: React.FC<SalaryRevisionModalProps> = ({
             borderRadius: 'var(--radius-md)',
             padding: '16px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
             gap: '12px',
             textAlign: 'center',
           }}>
@@ -169,38 +172,56 @@ export const SalaryRevisionModal: React.FC<SalaryRevisionModalProps> = ({
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2col">
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#713f12', marginBottom: '6px', display: 'block' }}>
-                New Base Salary ({employee.currency}) *
+                New Base Salary (USD $) *
               </label>
-              <input
-                type="number"
-                step="500"
-                min="1000"
-                value={newBaseSalary}
-                onChange={(e) => setNewBaseSalary(parseFloat(e.target.value) || 0)}
-                className="input-field"
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>$</span>
+                <input
+                  type="number"
+                  step="500"
+                  min="1000"
+                  value={newBaseSalary}
+                  onChange={(e) => setNewBaseSalary(parseFloat(e.target.value) || 0)}
+                  className="input-field"
+                  style={{ paddingLeft: '28px' }}
+                  required
+                />
+              </div>
+              {empCurrency !== 'USD' && (
+                <div style={{ fontSize: '0.74rem', color: '#a16207', marginTop: '4px', fontWeight: 600 }}>
+                  ≈ {new Intl.NumberFormat('en-US', { style: 'currency', currency: empCurrency }).format(newBaseSalary * currencyRate)} in {empCurrency}
+                </div>
+              )}
             </div>
 
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#713f12', marginBottom: '6px', display: 'block' }}>
-                Variable Bonus / Incentive ({employee.currency})
+                Variable Bonus / Incentive (USD $)
               </label>
-              <input
-                type="number"
-                step="500"
-                min="0"
-                value={newBonus}
-                onChange={(e) => setNewBonus(parseFloat(e.target.value) || 0)}
-                className="input-field"
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>$</span>
+                <input
+                  type="number"
+                  step="500"
+                  min="0"
+                  value={newBonus}
+                  onChange={(e) => setNewBonus(parseFloat(e.target.value) || 0)}
+                  className="input-field"
+                  style={{ paddingLeft: '28px' }}
+                />
+              </div>
+              {empCurrency !== 'USD' && (
+                <div style={{ fontSize: '0.74rem', color: '#a16207', marginTop: '4px', fontWeight: 600 }}>
+                  ≈ {new Intl.NumberFormat('en-US', { style: 'currency', currency: empCurrency }).format(newBonus * currencyRate)} in {empCurrency}
+                </div>
+              )}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2col">
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#713f12', marginBottom: '6px', display: 'block' }}>
                 Effective Date *

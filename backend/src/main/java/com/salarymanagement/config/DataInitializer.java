@@ -88,6 +88,15 @@ public class DataInitializer {
                     rev.setApprovedBy("Elena Vance (HR Manager)");
                     rev.setNotes("Benchmarking against top tier tech market rates in region.");
                     salaryService.reviseSalary(emp.getId(), rev);
+                } else if ("EMP-1004".equals(emp.getEmployeeCode())) {
+                    SalaryRevisionRequest rev = new SalaryRevisionRequest();
+                    rev.setNewBaseSalary(new BigDecimal("142000"));
+                    rev.setNewBonus(new BigDecimal("18000"));
+                    rev.setEffectiveDate(LocalDate.of(2025, 11, 15));
+                    rev.setRevisionReason("Annual Performance Merit & Role Leveling");
+                    rev.setApprovedBy("Elena Vance (HR Manager)");
+                    rev.setNotes("Closed FY2025 cycle performance increase.");
+                    salaryService.reviseSalary(emp.getId(), rev);
                 } else if ("EMP-1008".equals(emp.getEmployeeCode())) {
                     SalaryRevisionRequest rev = new SalaryRevisionRequest();
                     rev.setNewBaseSalary(new BigDecimal("190000"));

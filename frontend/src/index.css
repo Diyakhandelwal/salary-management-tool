@@ -396,3 +396,200 @@ select.input-field {
 .kpi-card.cyan::before {
   background: linear-gradient(90deg, #06b6d4, #0891b2);
 }
+
+/* ==========================================================================
+   Responsive Design System
+   ========================================================================== */
+
+.main-navbar {
+  padding: 0 24px;
+}
+
+.navbar-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72px;
+  gap: 16px;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px 60px 24px;
+}
+
+/* Tablet adjustments */
+@media (max-width: 1024px) {
+  .main-navbar {
+    padding: 0 16px;
+  }
+  .navbar-subtext {
+    display: none;
+  }
+  .main-content {
+    padding: 20px 16px 48px;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .main-navbar {
+    padding: 8px 12px;
+  }
+  
+  .navbar-container {
+    flex-wrap: wrap;
+    min-height: auto;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  
+  .navbar-brand {
+    gap: 8px;
+  }
+
+  .navbar-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: stretch;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  .navbar-tabs button {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 7px 10px;
+  }
+
+  .navbar-actions {
+    gap: 6px !important;
+  }
+
+  .navbar-actions .btn-sm {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  .audit-text {
+    display: none;
+  }
+
+  .persona-chip {
+    padding: 2px !important;
+  }
+
+  .persona-details {
+    display: none;
+  }
+
+  .main-content {
+    padding: 16px 10px 36px;
+  }
+
+  .modal-content {
+    max-width: 95vw !important;
+    margin: 8px !important;
+    padding: 0 !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .data-table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 740px;
+  }
+
+  .data-table th, .data-table td {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ==========================================================================
+   UX Enhancements: Sortable Headers, Filter Tags, Responsive Form Grids
+   ========================================================================== */
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .form-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.sortable-th:hover {
+  color: #854d0e !important;
+  background: rgba(254, 240, 138, 0.4);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: var(--radius-full);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #713f12;
+  transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+  background: #fef9c3;
+  border-color: #fde047;
+}
+
+.filter-chip-remove {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  color: #a16207;
+  transition: background 0.15s, color 0.15s;
+}
+
+.filter-chip-remove:hover {
+  background: #ca8a04;
+  color: #ffffff;
+}
+
+.currency-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+  letter-spacing: 0.02em;
+}
+
