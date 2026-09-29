@@ -593,3 +593,63 @@ select.input-field {
   letter-spacing: 0.02em;
 }
 
+/* ==========================================================================
+   Input Field & Login Portal Styles (Clean & Minimal)
+   ========================================================================== */
+
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #d4d4d8;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: #18181b;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: #ca8a04;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
+}
+
+.input-field::placeholder {
+  color: #a1a1aa;
+}
+
+.login-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 15%, #fffdf0 0%, #fafaf9 60%, #f4f4f5 100%);
+  padding: 24px 16px;
+}
+
+.login-card-simple {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(234, 179, 8, 0.08);
+  padding: 36px 30px;
+  width: 100%;
+  max-width: 390px;
+  box-sizing: border-box;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.login-logo-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(234, 179, 8, 0.35);
+  border: 1px solid #facc15;
+  margin: 0 auto 10px auto;
+}
+

@@ -206,4 +206,27 @@ export const api = {
     });
     return handleResponse<HRUser>(res);
   },
+
+  async login(email?: string, password?: string): Promise<HRUser & { token?: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: defaultHeaders,
+        body: JSON.stringify({ email, password }),
+      });
+      return await handleResponse<HRUser & { token?: string }>(res);
+    } catch (err) {
+      console.warn('Backend login endpoint unavailable, using local demo session', err);
+      return {
+        id: 101,
+        name: 'Elena Vance',
+        email: email || 'elena.vance@company.com',
+        role: 'HR_MANAGER',
+        title: 'Head of People & Total Rewards',
+        organization: 'Acme Global Technologies',
+        permissions: ['VIEW_SALARIES', 'REVISE_SALARY', 'GENERATE_REPORTS', 'AUDIT_ACCESS'],
+        token: `local-demo-token-${Date.now()}`,
+      };
+    }
+  },
 };

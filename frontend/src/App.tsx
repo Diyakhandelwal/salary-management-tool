@@ -6,6 +6,7 @@ import { SalaryRevisionModal } from './components/SalaryRevisionModal';
 import { SalaryHistoryDrawer } from './components/SalaryHistoryDrawer';
 import { EmployeeModal } from './components/EmployeeModal';
 import { AuditLogsView } from './components/AuditLogsView';
+import { LoginPage } from './components/LoginPage';
 import { api } from './services/api';
 import { 
   Employee, 
@@ -22,6 +23,11 @@ import { CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'employees' | 'audit'>('dashboard');
   
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('comppulse_is_authenticated') === 'true';
+  });
+
   // Data states
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentRevisions, setRecentRevisions] = useState<SalaryRevision[]>([]);
@@ -32,7 +38,17 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [departments, setDepartments] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
-  const [hrUser, setHrUser] = useState<HRUser | null>(null);
+  const [hrUser, setHrUser] = useState<HRUser | null>(() => {
+    const saved = localStorage.getItem('comppulse_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   // Filter state for employee list
   const [filters, setFilters] = useState<{
@@ -123,12 +139,32 @@ export const App: React.FC = () => {
   }, [filters]);
 
   useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
+    if (isAuthenticated) {
+      loadInitialData();
+    }
+  }, [isAuthenticated, loadInitialData]);
 
   useEffect(() => {
-    fetchEmployeesList(currentPage, filters);
-  }, [currentPage, filters, fetchEmployeesList]);
+    if (isAuthenticated) {
+      fetchEmployeesList(currentPage, filters);
+    }
+  }, [isAuthenticated, currentPage, filters, fetchEmployeesList]);
+
+  // Auth session handlers
+  const handleLogin = (user: HRUser) => {
+    localStorage.setItem('comppulse_is_authenticated', 'true');
+    localStorage.setItem('comppulse_auth_user', JSON.stringify(user));
+    setHrUser(user);
+    setIsAuthenticated(true);
+    showToast(`Welcome back, ${user.name}! CompPulse session authenticated.`, 'success');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('comppulse_is_authenticated');
+    localStorage.removeItem('comppulse_auth_user');
+    setIsAuthenticated(false);
+    showToast('Signed out of CompPulse session.', 'success');
+  };
 
   // Handle salary revision submission
   const handleSalaryRevision = async (employeeId: number, req: SalaryRevisionRequest) => {
@@ -224,6 +260,38 @@ export const App: React.FC = () => {
     setActiveTab('employees');
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        {/* Floating Toast Notification */}
+        {toastMessage && (
+          <div style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 2000,
+            background: toastMessage.type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(244, 63, 94, 0.95)',
+            color: '#ffffff',
+            padding: '12px 18px',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            backdropFilter: 'blur(8px)',
+            animation: 'slideUp 0.2s ease-out',
+          }}>
+            {toastMessage.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            <span>{toastMessage.text}</span>
+          </div>
+        )}
+        <LoginPage onLogin={handleLogin} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
@@ -236,6 +304,7 @@ export const App: React.FC = () => {
           setEmployeeToEdit(null);
           setIsEmployeeModalOpen(true);
         }}
+        onLogout={handleLogout}
       />
 
       {/* Floating Toast Notification */}

@@ -5,7 +5,8 @@ import {
   Users, 
   UserPlus, 
   ShieldCheck,
-  Activity
+  Activity,
+  LogOut
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -13,6 +14,7 @@ interface NavbarProps {
   setActiveTab: (tab: 'dashboard' | 'employees' | 'audit') => void;
   hrUser: HRUser | null;
   onOpenCreateEmployee: () => void;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -20,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   hrUser,
   onOpenCreateEmployee,
+  onLogout,
 }) => {
   return (
     <header className="main-navbar" style={{
@@ -155,6 +158,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Sign Out Button */}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="btn btn-secondary btn-sm"
+              style={{
+                padding: '6px 10px',
+                fontSize: '0.78rem',
+                color: '#71717a',
+                borderColor: '#e4e4e7',
+                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+              title="Sign out of CompPulse session"
+            >
+              <LogOut size={14} />
+              <span className="logout-text">Sign Out</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

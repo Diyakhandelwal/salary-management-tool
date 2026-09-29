@@ -22,4 +22,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.register<JavaExec>("unitTests") {
+    group = "verification"
+    description = "Runs the unit test suite via JUnit 5 Platform Launcher"
+    dependsOn("compileTestJava")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("com.salarymanagement.TestRunner")
 }
