@@ -100,7 +100,28 @@ export const App: React.FC = () => {
         api.getHRProfile().catch(() => null),
       ]);
 
-      if (sumData) setSummary(sumData);
+      if (sumData) {
+        setSummary(sumData);
+      } else {
+        // Cold-start resilience: if cloud backend was sleeping, retry after 3.5s
+        setTimeout(() => {
+          Promise.all([
+            api.getDashboardSummary().catch(() => null),
+            api.getRecentRevisions().catch(() => []),
+            api.getRoleAnalytics().catch(() => []),
+            api.getDepartments().catch(() => []),
+            api.getCountries().catch(() => []),
+            api.getHRProfile().catch(() => null),
+          ]).then(([sData, rRev, rRoles, dDepts, cCounts, pProfile]) => {
+            if (sData) setSummary(sData);
+            if (rRev && rRev.length > 0) setRecentRevisions(rRev);
+            if (rRoles && rRoles.length > 0) setRoleAnalytics(rRoles);
+            if (dDepts && dDepts.length > 0) setDepartments(dDepts);
+            if (cCounts && cCounts.length > 0) setCountries(cCounts);
+            if (pProfile) setHrUser(pProfile);
+          }).catch(() => {});
+        }, 3500);
+      }
       setRecentRevisions(recRev);
       setRoleAnalytics(roles);
       setDepartments(depts);
@@ -367,6 +388,10 @@ export const App: React.FC = () => {
                 }
               }
               if (target) setSelectedForHistory(target);
+            }}
+            onRetry={() => {
+              loadInitialData();
+              fetchEmployeesList(currentPage, filters);
             }}
           />
         )}

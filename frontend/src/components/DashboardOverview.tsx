@@ -10,7 +10,8 @@ import {
   ArrowUpRight, 
   Layers,
   Calendar,
-  CircleDollarSign
+  CircleDollarSign,
+  RefreshCw
 } from 'lucide-react';
 import { CurrencyCode, SUPPORTED_CURRENCIES, formatCurrencyAmount } from '../utils/currency';
 
@@ -21,6 +22,7 @@ interface DashboardOverviewProps {
   onNavigateToEmployees: (filter?: { department?: string; country?: string }) => void;
   onOpenRevisionForEmployee?: (employeeId: number) => void;
   onOpenHistoryForEmployee?: (employeeId: number) => void;
+  onRetry?: () => void;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -28,6 +30,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   recentRevisions,
   onNavigateToEmployees,
   onOpenHistoryForEmployee,
+  onRetry,
 }) => {
   const [reportingCurrency, setReportingCurrency] = useState<CurrencyCode>('USD');
   const [fiscalPeriod, setFiscalPeriod] = useState<'FY2026' | 'TTM' | 'FY2025'>('FY2026');
@@ -35,8 +38,58 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   if (!summary) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        Loading compensation metrics...
+      <div style={{
+        padding: '60px 24px',
+        textAlign: 'center',
+        background: '#ffffff',
+        border: '1px solid #fef08a',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0 4px 20px rgba(234, 179, 8, 0.08)',
+        maxWidth: '520px',
+        margin: '60px auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '16px'
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          background: '#fefce8',
+          border: '1.5px solid #fde047',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <RefreshCw size={24} color="#ca8a04" className="animate-spin" />
+        </div>
+        <div>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#18181b', margin: '0 0 6px 0' }}>
+            Connecting to Compensation Services
+          </h3>
+          <p style={{ fontSize: '0.84rem', color: '#71717a', margin: 0, lineHeight: 1.45 }}>
+            Retrieving live organization metrics. (Free-tier cloud backend spins down after inactivity and takes ~30–45s to wake up).
+          </p>
+        </div>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="btn btn-secondary btn-sm"
+            style={{
+              borderColor: '#eab308',
+              color: '#713f12',
+              marginTop: '6px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 600,
+            }}
+          >
+            <RefreshCw size={14} />
+            <span>Retry Connection Now</span>
+          </button>
+        )}
       </div>
     );
   }
