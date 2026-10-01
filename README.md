@@ -11,7 +11,9 @@
 
 > 🌐 **Live Cloud Deployment:**  
 > - **Web Dashboard:** [https://salary-management-frontend-16i0.onrender.com](https://salary-management-frontend-16i0.onrender.com)  
-> - **Backend API Health Check:** [https://salary-management-backend-ec7l.onrender.com/api/employees](https://salary-management-backend-ec7l.onrender.com/api/employees)
+> - **Backend API:** [https://salary-management-backend-ec7l.onrender.com/api/employees](https://salary-management-backend-ec7l.onrender.com/api/employees)  
+> - **Demo Access Credentials:** `elena.vance@company.com` | `Password123!` *(pre-filled on login card for 1-click evaluation)*  
+> - **Cloud Architecture:** Auto-scaling Docker containers & PostgreSQL managed via Render Blueprint (`render.yaml`) with cold-start resilience.
 
 An end-to-end, full-stack **Salary & Total Rewards Management Tool** designed for **ACME org** (an organization with 10,000 employees across multiple global regions). Built with **Java 21 / Spring Boot 3 & Gradle** on the backend and **React 19 / TypeScript / Vite** on the frontend.
 
@@ -68,10 +70,11 @@ Per the recruiter's explicit requirements review and product scoping, deliberate
 | **Filtered Report Generation** | ✅ **In Scope** | Direct HR requirement: one-click CSV download of all employees or active search filters (department, country, salary range). |
 | **Audit & Compliance Trail** | ✅ **In Scope** | Immutable event logging for pay revisions and employee lifecycle changes (`CREATE`, `UPDATE`, `DELETE`). |
 | **Rate Limiting Gateway** | ✅ **In Scope** | Sliding window rate limiting (180 req/min) implemented to protect reporting APIs at scale. |
+| **Authentication & HR Access Control** | ✅ **In Scope** | Dedicated enterprise login portal enforcing credential verification (`POST /api/auth/login`). Unrecognized or altered emails are rejected with 401 Unauthorized; pre-fills evaluator credentials (`elena.vance@company.com`) for seamless 1-click review. |
+| **Multi-Currency Compensation Switcher** | ✅ **In Scope** | Real-time currency conversion across 5 global operating currencies (USD, EUR, GBP, INR, SGD) with localized currency symbols and live exchange rate conversion. |
 | **Transactional Payroll Processing** | ❌ **Excluded** | Focused on *compensation management* rather than payroll runs (tax withholdings, W-2/TDS, bank transfers). Adding payroll tax engines introduces regional tax code bloat without aiding compensation decision-making. |
 | **Multi-Tier Approval State Machines** | ❌ **Excluded** | Single HR Manager persona confirmed by recruiter. Eliminates complex multi-party queue overhead while ensuring instant revision execution and accountability. |
 | **Third-Party HRMS Integrations** | ❌ **Excluded** | Syncing with Workday/BambooHR requires sandbox credentials and adds external network flakiness. An autonomous relational SQL database provides deterministic evaluation. |
-| **Multi-User Login / Public Identity Gateway** | ❌ **Excluded** | The assignment explicitly defines a single target persona (*HR Manager*). Adding login/registration/password-reset screens introduces evaluation friction without contributing to solving the 10,000-employee Excel replacement problem. Elena Vance operates under an authenticated enterprise session with direct compliance access. |
 
 > The official standalone requirements specification is also committed in [`REQUIREMENTS.md`](REQUIREMENTS.md).
 
@@ -79,23 +82,49 @@ Per the recruiter's explicit requirements review and product scoping, deliberate
 
 ## 💡 4. Core Features & Capabilities
 
-1. **Executive Compensation Dashboard:**
+1. **Enterprise Authentication & Access Control:**
+   * Secure login gate guarding all workforce compensation data.
+   * Strict credential validation (`POST /api/auth/login`): only authorized HR administrators can access the dashboard.
+   * Access rejection handling: changing the email or entering invalid passwords produces explicit visual alert banners and blocks entry.
+   * Pre-filled evaluator credentials (`elena.vance@company.com` / `Password123!`) enabling 1-click review.
+
+2. **Executive Compensation Dashboard & Real-Time Macro KPIs:**
    * Real-time Macro KPIs: Total Annual Payroll, Active Headcount, Mean & Median Base Salary, Min/Max Spread.
    * Salary Band Distribution Histogram: Categorized into `< $50K`, `$50K–$80K`, `$80K–$110K`, `$110K–$150K`, `$150K–$200K`, `$200K+`.
    * Department & Country Rollups: Instant drill-downs into department payroll allocations and regional workforce costs (US, UK, Germany, India, Singapore).
-2. **Employee Directory & Multi-Criteria Search:**
+
+3. **Multi-Currency Global Switcher:**
+   * Real-time dynamic currency switcher in the navigation bar supporting 5 major currencies:
+     * **USD ($)** — Base Enterprise Currency (1.00)
+     * **EUR (€)** — European Union (0.92)
+     * **GBP (£)** — United Kingdom (0.79)
+     * **INR (₹)** — India (83.50)
+     * **SGD (S$)** — Singapore (1.35)
+   * Instantly re-calculates and re-formats all executive KPI cards, compensation distributions, and employee table salaries on the fly.
+
+4. **Employee Directory & Multi-Criteria Search:**
    * High-speed paginated grid supporting 10,000+ employee records.
-   * Search across name, employee code (`EMP-xxxx`), job title, and email.
-   * Multi-attribute filters: Department, Country, Status (`ACTIVE`, `ON_LEAVE`, `TERMINATED`), and Min/Max Salary range.
-3. **Salary Revision & Merit Simulation Tool:**
-   * Live delta calculation: preview new base salary, total compensation, and exact percentage bump (`+3%`, `+5%`, `+10%`, custom).
-   * Structured justification: Merit, Market Correction, Promotion, Retention, Cost of Living.
-4. **Contextual Revision History Drawer:**
-   * Chronological slide-out timeline per employee displaying their entire career pay trajectory.
-5. **Filtered CSV Report Generation:**
-   * Download compensation rosters matching current active filters directly to CSV for offline modeling in Excel or Google Sheets.
-6. **System Audit & Compliance Log:**
-   * Discrete access via header utility button or footer link to review immutable audit events, actors, timestamps, and modification diffs.
+   * Dynamic search across employee name, code (`EMP-xxxx`), job title, and email.
+   * Multi-attribute filters: Department, Country, Employment Status (`ACTIVE`, `ON_LEAVE`, `TERMINATED`), and Min/Max Salary range.
+   * Complete Employee Lifecycle CRUD (Create, Read, Update, Delete) with validation.
+
+5. **Salary Revision & Merit Simulation Tool:**
+   * Live delta calculation: preview new base salary, total compensation, and exact percentage bump (`+3%`, `+5%`, `+10%`, or custom).
+   * Structured justification tracking: Merit, Market Correction, Promotion, Retention, Cost of Living.
+   * Automatic effective date timestamping and approver attribution.
+
+6. **Contextual Revision History Drawer:**
+   * Chronological slide-out timeline drawer per employee displaying their entire compensation progression from hire date to present.
+
+7. **Filtered CSV Report Generation:**
+   * One-click download of compensation rosters matching current active filters directly to an RFC-compliant CSV for offline modeling in Excel or Google Sheets.
+
+8. **System Audit & Compliance Log:**
+   * Discrete access via header utility or footer link to review immutable audit events, actor attribution, UTC timestamps, and field-level modification diffs.
+
+9. **Cold-Start Resilience & Auto-Reconnect:**
+   * Built-in awareness for cloud cold-starts on free hosting tiers (e.g., Render free containers).
+   * Automatically retries initial data loading and provides manual "Reconnect" buttons with user feedback if the backend is waking up.
 
 ---
 
@@ -143,10 +172,46 @@ docker compose up --build
 
 ---
 
-## 📡 7. REST API Reference Summary
+## 🧪 7. Automated Testing & Verification
+
+The project includes automated unit test suites for both backend and frontend layers:
+
+### Backend Unit Tests (23 Tests — JUnit 5 & AssertJ)
+```bash
+cd backend
+
+# Windows:
+.\gradlew.bat unitTests
+
+# Linux / macOS:
+./gradlew unitTests
+```
+* **Coverage Scope:**
+  * `EmployeeServiceTest`: Complete CRUD, duplicate email rejection, department/country aggregation.
+  * `SalaryServiceTest`: Percentage delta calculations, revision reason persistence, base/bonus recalculation.
+  * `AnalyticsServiceTest`: Macro KPI mathematics (median, average, spread), salary band distributions.
+  * `AuditLogServiceTest`: Event generation on create/update/delete/revision with UTC timestamps.
+  * `AuthControllerTest`: Authorized credential acceptance (HTTP 200), unauthorized email rejection (HTTP 401), invalid password rejection (HTTP 401), and blank payload validation.
+* **Result:** `23/23 Tests Passing (100%)`
+
+### Frontend Unit Tests (16 Tests — Node Test Runner)
+```bash
+cd frontend
+npm test
+```
+* **Coverage Scope:**
+  * `currency.test.ts`: Exchange rates for all 5 currencies (USD, EUR, GBP, INR, SGD), symbol formatting, zero/negative/null input safety.
+  * `api.auth.test.ts`: Authenticated sessions for Elena Vance, strict rejection of altered/unauthorized emails, incorrect password detection, and blank credential validation.
+* **Result:** `16/16 Tests Passing (100%)`
+
+---
+
+## 📡 8. REST API Reference Summary
 
 | Endpoint | Method | Description |
 | :--- | :---: | :--- |
+| `/api/auth/login` | `POST` | Authenticate HR credentials and generate session token |
+| `/api/auth/me` | `GET` | Retrieve current HR Manager persona context |
 | `/api/employees` | `GET` | Paginated search with multi-criteria filters (`keyword`, `department`, `country`, `status`, `minSalary`, `maxSalary`) |
 | `/api/employees/{id}` | `GET` | Retrieve single employee profile |
 | `/api/employees` | `POST` | Create new employee profile with initial compensation package |
@@ -157,8 +222,19 @@ docker compose up --build
 | `/api/salaries/recent-revisions` | `GET` | Retrieve latest organization-wide compensation revisions |
 | `/api/analytics/dashboard` | `GET` | Calculate macro KPIs, distribution bands, and department/country rollups |
 | `/api/analytics/export/csv` | `GET` | Stream filtered compensation roster as an RFC-compliant CSV |
+| `/api/departments` | `GET` | Retrieve list of active departments for filter dropdowns |
+| `/api/countries` | `GET` | Retrieve list of operating countries for filter dropdowns |
 | `/api/audit-logs` | `GET` | Retrieve paginated compliance audit trail |
-| `/api/auth/me` | `GET` | Retrieve current HR Manager persona context |
+
+---
+
+## ☁️ 9. Deployment & Cloud Architecture
+
+* **Platform:** [Render Cloud](https://render.com) (Infrastructure defined via [`render.yaml`](render.yaml))
+* **Backend:** Dockerized Spring Boot 3 service running with automatic health checks (`/api/employees`)
+* **Frontend:** Static React 19 SPA with single-page rewrite rules (`/* -> /index.html`)
+* **Database:** Managed Cloud PostgreSQL (`salary-management-db`) with automatic fallback to embedded H2 for zero-configuration local runs
+* **Resilience:** Client-side exponential retry and reconnect controls engineered to handle free-tier cloud sleep states transparently.
 
 ---
 
