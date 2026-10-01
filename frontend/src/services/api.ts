@@ -1,4 +1,4 @@
-import {
+import type {
   Employee,
   SalaryRevision,
   AuditLog,
@@ -8,9 +8,9 @@ import {
   EmployeeUpdateRequest,
   SalaryRevisionRequest,
   HRUser,
-} from '../types';
+} from '../types/index.ts';
 function getApiBaseUrl(): string {
-  const envUrl = import.meta.env.VITE_API_URL;
+  const envUrl = (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_API_URL) || '';
   if (!envUrl) {
     return 'http://localhost:8080/api';
   }
