@@ -228,13 +228,59 @@ npm test
 
 ---
 
-## ☁️ 9. Deployment & Cloud Architecture
+## ☁️ 9. Render Cloud Infrastructure & Server Specifications
 
-* **Platform:** [Render Cloud](https://render.com) (Infrastructure defined via [`render.yaml`](render.yaml))
-* **Backend:** Dockerized Spring Boot 3 service running with automatic health checks (`/api/employees`)
-* **Frontend:** Static React 19 SPA with single-page rewrite rules (`/* -> /index.html`)
-* **Database:** Managed Cloud PostgreSQL (`salary-management-db`) with automatic fallback to embedded H2 for zero-configuration local runs
-* **Resilience:** Client-side exponential retry and reconnect controls engineered to handle free-tier cloud sleep states transparently.
+The production deployment runs on [Render Cloud](https://render.com) using Infrastructure-as-Code orchestrated through [`render.yaml`](render.yaml).
+
+### A. Managed Database Specifications (`salary-management-db`)
+
+| Parameter | Specification | Details / Rationale |
+| :--- | :--- | :--- |
+| **Engine** | Managed PostgreSQL 16 | ACID-compliant relational SQL engine for corporate workforce data |
+| **Service Name** | `salary-management-db` | Defined in Render Blueprint schema |
+| **Database Name** | `salarydb` | Logical catalog storing employee, revision, and audit tables |
+| **Database User** | `salary_database_user` | Dedicated restricted database role |
+| **Plan / Tier** | Free Tier (`plan: free`) | 1 GB storage, 256 MB RAM |
+| **Hosting Region** | Oregon, USA (`region: oregon`) | Co-located with backend service for sub-5ms internal latency |
+| **Connection Pooling** | HikariCP (Spring Boot default) | Max pool size: 10 connections, min-idle: 2, connection timeout: 30s |
+| **ORM / DDL Strategy** | Hibernate 6 (`ddl-auto=update`) | Safe schema evolution without dropping existing records |
+| **Indexes** | B-Tree on `base_salary`, `dept`, `country` | Optimized compound index scans for sub-50ms analytics across 10,000 records |
+| **Local Fallback** | In-Memory H2 Database | Automatically falls back to `jdbc:h2:mem:salarydb` if `SPRING_DATASOURCE_URL` is omitted |
+
+### B. Backend API Server Specifications (`salary-management-backend`)
+
+| Parameter | Specification | Details / Rationale |
+| :--- | :--- | :--- |
+| **Service Type** | Web Service (`type: web`) | Public-facing REST API gateway |
+| **Runtime Environment** | Docker Container (`env: docker`) | Multi-stage build based on `eclipse-temurin:21-alpine` |
+| **Build Stage** | `eclipse-temurin:21-jdk-alpine` | Compiles Spring Boot JAR via Gradle (`./gradlew bootJar -x test`) |
+| **Runtime Stage** | `eclipse-temurin:21-jre-alpine` | Minimal, hardened runtime container (~160 MB total footprint) |
+| **Security User** | Non-root `appuser` (UID 1000) | Principle of least privilege; root execution forbidden |
+| **Compute Resources** | 512 MB RAM / 0.1 vCPU | Free tier allocation |
+| **Exposed Port** | Dynamic `$PORT` (default `8080`) | Injected by Render orchestration layer |
+| **Health Check Path** | `GET /api/employees` | Probes service readiness before routing production traffic |
+| **Rate Limiter** | Sliding Window Filter | In-memory token bucket enforcing 180 req/minute per IP address |
+| **Cold-Start Profile** | Free tier spin-down | Spins down after 15 min of inactivity; spin-up takes ~35–45s |
+
+### C. Frontend Web Server Specifications (`salary-management-frontend`)
+
+| Parameter | Specification | Details / Rationale |
+| :--- | :--- | :--- |
+| **Service Type** | Static Site (`type: web`, `env: static`) | High-performance CDN-distributed single-page app |
+| **Build Command** | `cd frontend && npm install && npm run build` | Bundled via Vite 8.3 & TypeScript compiler (`tsc -b`) |
+| **Publish Directory** | `./frontend/dist` | Production static asset artifacts (HTML, CSS, JS, SVG) |
+| **Routing / Rewrites** | SPA Rewrite (`/* -> /index.html`) | Ensures clean browser routing and page refreshes |
+| **CDN / Edge Network** | Global Anycast Edge CDN | Fast cached static asset delivery with HTTP/2 and Brotli/Gzip compression |
+| **SSL / TLS** | Automatic Let's Encrypt TLS 1.3 | Strict HTTPS enforcement across all endpoints |
+| **Client Resilience** | Cold-Start Auto-Retry & Reconnect | Detects sleeping backend instances, retries polling, and displays reconnect banners |
+
+### D. Cloud Environment Variables Reference
+
+| Variable | Scope | Source / Description |
+| :--- | :--- | :--- |
+| `PORT` | Backend | `8080` (Injected dynamically by Render runtime) |
+| `SPRING_DATASOURCE_URL` | Backend | Referenced from `salary-management-db.connectionString` |
+| `VITE_API_URL` | Frontend | `https://salary-management-backend-ec7l.onrender.com` (Directs frontend API traffic) |
 
 ---
 

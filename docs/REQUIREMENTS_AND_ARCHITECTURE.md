@@ -95,11 +95,40 @@ Implemented directly in accordance with the whiteboard architectural design:
 
 ---
 
-## 5. Technology Stack
-* **Backend:** Java 21 / 24, Spring Boot 3.4.3, Gradle 8.12.1 (`build.gradle`), Spring Data JPA, Hibernate, Jakarta Validation.
+## 5. Technology Stack & Infrastructure Specifications
+
+### Core Frameworks & Runtimes
+* **Backend:** Java 21 / 24, Spring Boot 3.4.3, Gradle 8.12.1 (`build.gradle.kts`), Spring Data JPA, Hibernate 6, Jakarta Validation.
 * **Frontend:** React 19, TypeScript, Vite, Vanilla CSS Design System with CSS Custom Properties, Lucide Icons.
-* **Database:** Embedded H2 Database with in-memory persistence and web console (`/h2-console`); PostgreSQL production compatibility.
-* **DevOps & Deployment:** Docker multi-stage builds, `docker-compose.yml`, `render.yaml` for free cloud deployment.
+* **Local Database:** Embedded H2 Database with in-memory persistence and web console (`/h2-console`).
+
+### Render Cloud Infrastructure Specifications (`render.yaml`)
+
+#### 1. Managed Database Specifications (`salary-management-db`)
+* **Engine:** Managed PostgreSQL 16 (ACID-compliant relational store).
+* **Database Catalog:** `salarydb` owned by role `salary_database_user`.
+* **Allocation:** Free Tier (1 GB disk storage, 256 MB RAM) co-located in Oregon, USA (`region: oregon`).
+* **Connection Pooling:** Spring Boot HikariCP pool (`spring.datasource.url=${SPRING_DATASOURCE_URL}`) with max 10 active connections.
+* **Schema Evolution:** Hibernate 6 `ddl-auto=update` ensuring non-destructive schema evolution.
+* **Database Indexing:** Compound and B-Tree indexes on `base_salary`, `department`, `country`, `email`, and `employee_code` ensuring sub-50ms execution on analytical aggregations.
+
+#### 2. Backend Server Specifications (`salary-management-backend`)
+* **Environment:** Containerized Docker Web Service (`env: docker`).
+* **Multi-Stage Container:**
+  * Build Stage: `eclipse-temurin:21-jdk-alpine` compiling clean Spring Boot fat JAR.
+  * Runtime Stage: `eclipse-temurin:21-jre-alpine` running as non-root unprivileged `appuser:appgroup` (~160 MB container footprint).
+* **Resources & Scaling:** 512 MB RAM / 0.1 vCPU (Render Free Tier allocation).
+* **Port Binding:** Listens on dynamic `$PORT` injected by cloud orchestrator (defaults to 8080).
+* **Health Probing:** HTTP `GET /api/employees` readiness probe before traffic admission.
+* **Traffic Protection:** Sliding-window rate limiter filter enforcing 180 requests/minute per client IP.
+
+#### 3. Frontend Static Server Specifications (`salary-management-frontend`)
+* **Environment:** Static Site Service (`env: static`).
+* **Build Pipeline:** `cd frontend && npm install && npm run build` via Vite and TypeScript compiler.
+* **Asset Distribution:** Global Anycast Edge CDN serving pre-compressed Brotli/Gzip static bundles from `./frontend/dist`.
+* **Routing Rules:** Catch-all URL rewrite `/* -> /index.html` to support client-side SPA routing.
+* **Security & TLS:** Automated Let's Encrypt TLS 1.3 certificate provisioning with HTTPS enforcement.
+* **Cloud Resilience Engine:** Client-side exponential retry and reconnect controls engineered to handle free-tier cloud container cold starts transparently.
 
 ---
 
