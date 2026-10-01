@@ -33,7 +33,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("login: Successfully returns session token and authenticated user profile")
+    @DisplayName("login: Successfully returns session token and authenticated user profile for authorized credentials")
     void login_returnsTokenAndProfile() {
         Map<String, String> credentials = Map.of(
                 "email", "elena.vance@company.com",
@@ -43,7 +43,7 @@ class AuthControllerTest {
         @SuppressWarnings("unchecked")
         ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) authController.login(credentials);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
         Map<String, Object> body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.get("email")).isEqualTo("elena.vance@company.com");
@@ -53,15 +53,50 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("login: Falls back gracefully to default email when body is empty")
-    void login_handlesEmptyBodyGracefully() {
+    @DisplayName("login: Rejects unauthorized email with 401 Unauthorized")
+    void login_rejectsUnauthorizedEmail() {
+        Map<String, String> credentials = Map.of(
+                "email", "unknown.user@otherdomain.com",
+                "password", "Password123!"
+        );
+
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) authController.login(credentials);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+        Map<String, Object> body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.get("error")).isEqualTo("Unauthorized");
+        assertThat(body.get("message").toString()).contains("restricted to authorized HR administrators");
+    }
+
+    @Test
+    @DisplayName("login: Rejects invalid password with 401 Unauthorized")
+    void login_rejectsInvalidPassword() {
+        Map<String, String> credentials = Map.of(
+                "email", "elena.vance@company.com",
+                "password", "WrongPassword999!"
+        );
+
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) authController.login(credentials);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+        Map<String, Object> body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.get("error")).isEqualTo("Unauthorized");
+    }
+
+    @Test
+    @DisplayName("login: Rejects empty or null credentials body with 401 Unauthorized")
+    void login_rejectsEmptyBody() {
         @SuppressWarnings("unchecked")
         ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) authController.login(null);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
         Map<String, Object> body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.get("email")).isEqualTo("elena.vance@company.com");
-        assertThat(body.get("token")).isNotNull();
+        assertThat(body.get("error")).isEqualTo("Unauthorized");
+        assertThat(body.get("message").toString()).contains("Work email address is required");
     }
 }

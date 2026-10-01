@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, ArrowRight } from 'lucide-react';
 import type { HRUser } from '../types';
+import { api } from '../services/api';
 
 interface LoginPageProps {
   onLogin: (user: HRUser) => void;
@@ -13,29 +14,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, isLoading = false
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
       setErrorMessage('Please enter your work email.');
+      return;
+    }
+    if (!password) {
+      setErrorMessage('Please enter your password.');
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    setTimeout(() => {
-      const authenticatedUser: HRUser = {
-        id: 101,
-        name: 'Elena Vance',
-        email: email.trim(),
-        role: 'HR_MANAGER',
-        title: 'Head of People & Total Rewards',
-        organization: 'Acme Global Technologies',
-        permissions: ['VIEW_SALARIES', 'REVISE_SALARY', 'GENERATE_REPORTS', 'AUDIT_ACCESS'],
-      };
+    try {
+      const authenticatedUser = await api.login(email.trim(), password);
       setIsSubmitting(false);
       onLogin(authenticatedUser);
-    }, 200);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMessage(
+        err?.message || 'Invalid work email or password. Access is restricted to authorized HR administrators (elena.vance@company.com).'
+      );
+    }
   };
 
   return (

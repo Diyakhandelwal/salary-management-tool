@@ -208,19 +208,38 @@ export const api = {
   },
 
   async login(email?: string, password?: string): Promise<HRUser & { token?: string }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const isAuthorizedElena = (cleanEmail === 'elena.vance@company.com' || cleanEmail === 'elena.vance@acmeglobal.com')
+      && (password === 'Password123!' || password === 'Password123' || password === 'password123');
+
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: defaultHeaders,
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
       return await handleResponse<HRUser & { token?: string }>(res);
-    } catch (err) {
-      console.warn('Backend login endpoint unavailable, using local demo session', err);
+    } catch (err: any) {
+      // If the backend actively rejected with 401 Unauthorized or an authentication failure message, rethrow it!
+      if (err?.message && (
+        err.message.includes('Invalid') ||
+        err.message.includes('Unauthorized') ||
+        err.message.includes('restricted') ||
+        err.message.includes('required')
+      )) {
+        throw err;
+      }
+
+      // If backend network is unavailable / sleeping, strictly enforce credential checks locally
+      if (!isAuthorizedElena) {
+        throw new Error('Invalid work email or password. Access is restricted to authorized HR administrators (elena.vance@company.com).');
+      }
+
+      console.warn('Backend server cold-starting; authenticated via local fallback', err);
       return {
         id: 101,
         name: 'Elena Vance',
-        email: email || 'elena.vance@company.com',
+        email: cleanEmail,
         role: 'HR_MANAGER',
         title: 'Head of People & Total Rewards',
         organization: 'Acme Global Technologies',
